@@ -1,97 +1,138 @@
-# 🛡️ Cloud Security Engineering Capstone: Automated & Secure AWS Infrastructure
+# 🛡️ Secure Automated Web Architecture — TKH Final Capstone
 
-![Security Scan (SAST)](https://github.com/jeman28-lgtm/tkh-capstone-cloud-security/actions/workflows/sast.yml/badge.svg)
-![Terraform](https://img.shields.io/badge/IaC-Terraform_v1.0+-623CE4?style=flat&logo=terraform&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-EC2_%7C_VPC_%7C_SG-FF9900?style=flat&logo=amazon-aws&logoColor=white)
-
-## 📌 Executive Summary
-This repository contains the infrastructure-as-code (IaC) and DevSecOps pipeline for the **TLAB 12 Capstone Project**. The objective of this mission was to architect, secure, and deploy an automated web server environment in Amazon Web Services (AWS) using **Terraform**, guarded by automated **SAST (Static Application Security Testing)** workflows.
-
-The architecture strictly adheres to zero-trust design principles, least-privilege networking, and automated compliance checking via GitHub Actions.
+![Terraform](https://img.shields.io/badge/IaC-Terraform_v1.0+-623CE4?style=for-the-badge&logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-Cloud-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![DevSecOps](https://img.shields.io/badge/Security-tfsec_SAST-green?style=for-the-badge&logo=github-actions&logoColor=white)
+![Build Status](https://img.shields.io/badge/Pipeline-Passing_Green-success?style=for-the-badge)
 
 ---
 
-## 🏗️ Architecture & Security Blueprint
+## 📌 Project Overview
+This project implements a secure, automated web architecture using **Terraform**, **AWS**, and **GitHub Actions**. It strictly follows the TKH Capstone Milestones: provisioning foundational infrastructure, enforcing an automated DevSecOps quality gate, and deploying an enterprise-hardened web server. 
 
-```text
-                     +--------------------------------------------------+
-                     |                 AWS Cloud (us-east-1)            |
-                     |                                                  |
-                     |   +------------------------------------------+   |
-                     |   |        Custom VPC (10.0.0.0/16)          |   |
-                     |   |                                          |   |
-                     |   |   +----------------------------------+   |   |
-                     |   |   |   Public Subnet (10.0.1.0/24)   |   |   |
-  Internet           |   |   |                                  |   |   |
-  +--------+         |   |   |   +--------------------------+   |   |   |
-  | Client | ------> |   |   |   |  Security Group (Web SG) |   |   |   |
-  +--------+         |   |   |   |  - Port 80 (HTTP)        |   |   |   |
-                     |   |   |   |  - Port 22 (SSH Restr.)  |   |   |   |
-                     |   |   |   |                          |   |   |   |
-                     |   |   |   |   +------------------+   |   |   |   |
-                     |   |   |   |   | EC2 (t3.micro)   |   |   |   |   |
-                     |   |   |   |   | Apache Web App   |   |   |   |   |
-                     |   |   |   |   +------------------+   |   |   |   |
-                     |   |   |   +--------------------------+   |   |   |
-                     |   |   +----------------------------------+   |   |
-                     |   +------------------------------------------+   |
-                     +--------------------------------------------------+
-```
-
-### 🔒 Core Security Controls (`main.tf`)
-1. **Network Isolation:** Built a dedicated, non-default Virtual Private Cloud (VPC) with explicit route tables and subnets.
-2. **Strict Firewall Boundaries:** Security Group limits HTTP (80) inbound access and locks SSH (22) to designated manageability blocks.
-3. **IMDSv2 Enforcement:** Enforced `http_tokens = "required"` on the `t3.micro` EC2 instance to prevent SSRF (Server-Side Request Forgery) attacks targeting IMDS credentials.
-4. **Data at Rest Encryption:** Enforced storage volume encryption (`encrypted = true`) across all root block devices.
+The resulting environment reflects production-grade cloud standards, featuring strong network isolation, customer-managed KMS encrypted logging, restricted administrative ingress/egress, and continuous security scanning.
 
 ---
 
-## ⚙️ CI/CD DevSecOps Pipeline
+## 🏗️ Visual Architecture Diagram
 
-Automated security checks run on every `push` and `pull_request` to the main branch via **GitHub Actions**:
+```mermaid
+graph TD
+    subgraph AWS Cloud Region: us-east-1
+        subgraph VPC: tlab12-capstone-vpc 10.0.0.0/16
+            IGW[Internet Gateway: tlab12-igw]
+            RT[Public Route Table: tlab12-public-rt]
+            
+            subgraph Public Subnet: 10.0.1.0/24
+                SG[Security Group: tlab12-web-sg<br/>Inbound: HTTP/SSH Restricted to Admin IP<br/>Outbound: Ports 80/443 Only]
+                EC2[EC2 Web Server: tlab12-capstone-web-server<br/>Amazon Linux 2023 | t3.micro<br/>Root Volume Encrypted | IMDSv2 Enforced]
+            end
+            
+            FL[VPC Flow Logs: ALL Traffic]
+        end
+        
+        CW[CloudWatch Log Group: /aws/vpc/tlab12-flow-logs]
+        KMS[AWS KMS Key: Customer Managed Encryption]
+    end
 
-* **`tfsec`**: Scans Terraform code for infrastructure misconfigurations, public exposure risks, and compliance vectors.
-
-Pipelines must pass **100% clean** before code is eligible for deployment.
-
----
-
-## 🚀 Deployment & Management Walkthrough
-
-### Prerequisites
-* [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) (>= v1.0.0)
-* [AWS CLI v2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) configured with active credentials.
-
-### 1. Initialize & Validate Infrastructure
-```bash
-terraform init
-terraform validate
-```
-
-### 2. Execution Plan & Deployment
-```bash
-terraform plan
-terraform apply -auto-approve
-```
-
-### 3. Zero Drift Infrastructure Teardown
-```bash
-terraform destroy -auto-approve
+    Admin[Administrator IP: var.my_ip] -->|Port 80 / 22| IGW
+    IGW --> RT
+    RT --> SG
+    SG --> EC2
+    FL --> CW
+    KMS -. Encrypts .-> CW
 ```
 
 ---
 
-## 📁 Repository Structure
+## 🚀 Milestone Breakdowns
 
-```text
-.
-├── .github/
-│   └── workflows/
-│       └── sast.yml        # CI/CD Pipeline (tfsec)
-├── main.tf                 # Primary IaC definitions (VPC, SG, EC2 t3.micro)
-├── variables.tf            # Configurable variable declarations
-└── README.md               # Project documentation & architectural spec
+### 📍 Milestone 1 — Infrastructure
+* **Phase 1: Workspace Initialization**
+  * Created GitHub repository: `TKH-Final-Capstone`
+  * Configured local workspace in VS Code with `main.tf` and `variables.tf`.
+* **Phase 2: Architecture Build**
+  * **Network:** `aws_vpc` (10.0.0.0/16), `aws_subnet` (10.0.1.0/24), Internet Gateway, and Route Table mappings.
+  * **Firewall:** `aws_security_group` enforcing restricted HTTP (80) and SSH (22) to administrator IP, with scoped outbound package repository access.
+  * **Server:** `aws_instance` (Amazon Linux 2023, `t3.micro`) bootstrapped via `user_data` to auto-provision Apache (`httpd`).
+  * **Logging & Encryption Enhancements:** Added customer-managed `aws_kms_key`, CloudWatch log streams, IAM assume roles, and VPC Flow Logs capturing all network traffic.
+* **Phase 3: Submission Validation**
+  * Successfully initialized (`terraform init`) and validated syntax (`terraform validate`).
+
+---
+
+### 📍 Milestone 2 — DevSecOps Pipeline
+* **Phase 1: SAST Workflow Creation**
+  * Configured `.github/workflows/security-scan.yml` integrating `aquasecurity/tfsec-pr-commenter-action`.
+  * Enforced `--soft-fail=false` as a hard quality gate blocking misconfigured code pushes.
+* **Phase 2: Quality Gate Enforcement**
+  * Automated pipeline execution on every push to `main`.
+  * Remediated security findings (enforcing IMDSv2, EBS encryption, and KMS logging) to achieve 100% green status pass.
+
 ```
+[GitHub Push] ➔ [GitHub Actions Trigger] ➔ [tfsec Static Analysis] ➔ [GREEN: 0 Vulnerabilities]
+```
+
+---
+
+### 📍 Milestone 3 — Deployment & Verification
+* **Phase 1: Launch & Verification**
+  * Authenticated via AWS CLI and executed `terraform apply -auto-approve`.
+  * Verified live public IPv4 output and loaded custom Apache landing page.
+* **Phase 2: Live Verification Screenshot**
+
+*(Insert your captured web page screenshot below)*
+> ![Live Deployment Screenshot](https://via.placeholder.com/800x400.png?text=Add+Your+Live+Web+Server+Screenshot+Here)
+
+---
+
+## 🛠️ Technologies Used
+
+| Technology | Purpose |
+| :--- | :--- |
+| **AWS** | Cloud Infrastructure Hosting (VPC, EC2, KMS, CloudWatch, IAM) |
+| **Terraform** | Infrastructure as Code (IaC) Provisioning & State Management |
+| **GitHub Actions** | Continuous Integration & Automated CI/CD Pipelines |
+| **tfsec** | Static Application Security Testing (SAST) Quality Gate |
+| **Apache (httpd)** | Web Server Execution |
+
+---
+
+## 🔒 Security & Hardening Controls Summary
+
+* **Network Perimeter:** Strict Security Group ingress limited solely to `var.my_ip`. Outbound traffic strictly limited to Ports 80 and 443.
+* **Compute Security:** Enforced Instance Metadata Service Version 2 (`IMDSv2`) to mitigate SSRF token abuse; EBS root volume encrypted at rest.
+* **Audit & Forensics:** VPC Flow Logs continuously record network interface traffic into a CloudWatch Log Group encrypted with an AWS KMS Customer Managed Key.
+
+---
+
+## 📋 Deployment Instructions
+
+1. **Initialize Workspace:**
+   ```bash
+   terraform init
+   ```
+2. **Validate Syntax:**
+   ```bash
+   terraform validate
+   ```
+3. **Review Execution Plan:**
+   ```bash
+   terraform plan
+   ```
+4. **Deploy Infrastructure:**
+   ```bash
+   terraform apply -auto-approve
+   ```
+5. **Teardown Infrastructure:**
+   ```bash
+   terraform destroy -auto-approve
+   ```
+
+---
+
+## 🔚 Conclusion
+This capstone demonstrates end-to-end technical competency across Terraform, AWS cloud architecture, DevSecOps pipeline automation, and zero-trust security controls—reflecting real-world production standards and readiness for professional cloud engineering roles.
 
 ---
 

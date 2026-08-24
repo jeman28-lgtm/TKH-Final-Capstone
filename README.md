@@ -81,7 +81,7 @@ graph TD
   * Verified live public IPv4 output and loaded custom Apache landing page.
 * **Phase 2: Live Verification Screenshot**
 
-![Live Web Server Verification](server-proof.png)
+![Live Web Server Verification](images/server-proof.png)
 
 ---
 

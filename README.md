@@ -82,7 +82,7 @@ graph TD
 * **Phase 2: Live Verification Screenshot**
 
 *(Insert your captured web page screenshot below)*
-> ![Live Deployment Screenshot](https://via.placeholder.com/800x400.png?text=Add+Your+Live+Web+Server+Screenshot+Here)
+> ![alt text](<Screenshot 2026-08-17 190217.png>)
 
 ---
 

@@ -20,28 +20,27 @@ The resulting environment reflects production-grade cloud standards, featuring s
 graph TD
     subgraph AWS Cloud Region: us-east-1
         subgraph VPC: tlab12-capstone-vpc 10.0.0.0/16
-            IGW[Internet Gateway: tlab12-igw]
-            RT[Public Route Table: tlab12-public-rt]
+            IGW["Internet Gateway: tlab12-igw"]
+            RT["Public Route Table: tlab12-public-rt"]
             
             subgraph Public Subnet: 10.0.1.0/24
-                SG[Security Group: tlab12-web-sg<br/>Inbound: HTTP/SSH Restricted to Admin IP<br/>Outbound: Ports 80/443 Only]
-                EC2[EC2 Web Server: tlab12-capstone-web-server<br/>Amazon Linux 2023 | t3.micro<br/>Root Volume Encrypted | IMDSv2 Enforced]
+                SG["Security Group: tlab12-web-sg<br/>Inbound: HTTP/SSH Restricted to Admin IP<br/>Outbound: Ports 80/443 Only"]
+                EC2["EC2 Web Server: tlab12-capstone-web-server<br/>Amazon Linux 2023 - t3.micro<br/>Root Volume Encrypted - IMDSv2 Enforced"]
             end
             
-            FL[VPC Flow Logs: ALL Traffic]
+            FL["VPC Flow Logs: ALL Traffic"]
         end
         
-        CW[CloudWatch Log Group: /aws/vpc/tlab12-flow-logs]
-        KMS[AWS KMS Key: Customer Managed Encryption]
+        CW["CloudWatch Log Group: /aws/vpc/tlab12-flow-logs"]
+        KMS["AWS KMS Key: Customer Managed Encryption"]
     end
 
-    Admin[Administrator IP: var.my_ip] -->|Port 80 / 22| IGW
+    Admin["Administrator IP: var.my_ip"] -->|Port 80 / 22| IGW
     IGW --> RT
     RT --> SG
     SG --> EC2
     FL --> CW
     KMS -. Encrypts .-> CW
-```
 
 ---
 

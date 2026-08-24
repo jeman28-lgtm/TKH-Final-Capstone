@@ -41,6 +41,7 @@ graph TD
     SG --> EC2
     FL --> CW
     KMS -. Encrypts .-> CW
+```
 
 ---
 
